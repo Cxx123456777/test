@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.examsystem.mapper.QuestionMapper">
+
+    <resultMap id="QuestionResultMap" type="com.example.examsystem.model.Question">
+        <id property="id" column="id"/>
+        <result property="content" column="content"/>
+        <result property="questionType" column="question_type"/>
+        <result property="defaultScore" column="default_score"/>
+        <!-- Options will be loaded by a separate query in QuestionOptionMapper or via a join if preferred later -->
+        <collection property="options" javaType="java.util.List" ofType="com.example.examsystem.model.QuestionOption"
+                    select="com.example.examsystem.mapper.QuestionOptionMapper.findByQuestionId" column="id"/>
+    </resultMap>
+
+    <select id="findById" resultMap="QuestionResultMap">
+        SELECT id, content, question_type, default_score FROM question WHERE id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="QuestionResultMap">
+        SELECT id, content, question_type, default_score FROM question
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO question (content, question_type, default_score)
+        VALUES (#{content}, #{questionType}, #{defaultScore})
+    </insert>
+
+    <update id="update">
+        UPDATE question SET
+            content = #{content},
+            question_type = #{questionType},
+            default_score = #{defaultScore}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM question WHERE id = #{id}
+    </delete>
+
+</mapper>

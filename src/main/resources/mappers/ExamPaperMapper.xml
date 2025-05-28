@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.examsystem.mapper.ExamPaperMapper">
+
+    <resultMap id="ExamPaperResultMap" type="com.example.examsystem.model.ExamPaper">
+        <id property="id" column="ep_id"/> <!-- Aliased to avoid conflict if joined -->
+        <result property="title" column="ep_title"/>
+        <result property="description" column="ep_description"/>
+        <result property="creationDate" column="ep_creation_date"/>
+        <collection property="questions" javaType="java.util.List" ofType="com.example.examsystem.model.Question">
+            <id property="id" column="q_id"/>
+            <result property="content" column="q_content"/>
+            <result property="questionType" column="q_question_type"/>
+            <result property="defaultScore" column="q_default_score"/>
+            <!-- Assuming Question's options are loaded by its own mapper -->
+            <collection property="options" javaType="java.util.List" ofType="com.example.examsystem.model.QuestionOption"
+                        select="com.example.examsystem.mapper.QuestionOptionMapper.findByQuestionId" column="q_id"/>
+        </collection>
+    </resultMap>
+
+    <!-- ResultMap for fetching just question IDs -->
+    <resultMap id="QuestionIdResultMap" type="java.lang.Long">
+        <result column="question_id"/>
+    </resultMap>
+
+    <select id="findById" resultMap="ExamPaperResultMap">
+        SELECT
+            ep.id as ep_id, ep.title as ep_title, ep.description as ep_description, ep.creation_date as ep_creation_date,
+            q.id as q_id, q.content as q_content, q.question_type as q_question_type, q.default_score as q_default_score
+        FROM exam_paper ep
+        LEFT JOIN exampaper_questions epq ON ep.id = epq.exampaper_id
+        LEFT JOIN question q ON epq.question_id = q.id
+        WHERE ep.id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="ExamPaperResultMap">
+        SELECT
+            ep.id as ep_id, ep.title as ep_title, ep.description as ep_description, ep.creation_date as ep_creation_date
+            <!-- For a list view, we might not load all questions details immediately to avoid N+1.
+                 This example loads them. Alternatively, make a simpler ExamPaperResultMapWithoutQuestions. -->
+            , q.id as q_id, q.content as q_content, q.question_type as q_question_type, q.default_score as q_default_score
+        FROM exam_paper ep
+        LEFT JOIN exampaper_questions epq ON ep.id = epq.exampaper_id
+        LEFT JOIN question q ON epq.question_id = q.id
+        ORDER BY ep.id, q.id
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO exam_paper (title, description, creation_date)
+        VALUES (#{title}, #{description}, NOW())
+        <!-- Assuming creation_date is set by DB or NOW() if not provided by DTO -->
+    </insert>
+
+    <update id="update">
+        UPDATE exam_paper SET
+            title = #{title},
+            description = #{description}
+            <!-- creation_date is typically not updated -->
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        <!-- Consider related data in exampaper_questions. Options: cascade delete in DB, or delete here. -->
+        DELETE FROM exampaper_questions WHERE exampaper_id = #{id};
+        DELETE FROM exam_paper WHERE id = #{id};
+    </delete>
+
+    <insert id="addQuestionToPaper">
+        INSERT INTO exampaper_questions (exampaper_id, question_id)
+        VALUES (#{examPaperId}, #{questionId})
+    </insert>
+
+    <delete id="removeQuestionFromPaper">
+        DELETE FROM exampaper_questions
+        WHERE exampaper_id = #{examPaperId} AND question_id = #{questionId}
+    </delete>
+
+    <select id="findQuestionIdsByPaperId" resultMap="QuestionIdResultMap">
+        SELECT question_id FROM exampaper_questions WHERE exampaper_id = #{examPaperId}
+    </select>
+
+</mapper>

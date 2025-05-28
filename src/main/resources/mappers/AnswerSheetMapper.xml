@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.examsystem.mapper.AnswerSheetMapper">
+
+    <resultMap id="AnswerSheetResultMap" type="com.example.examsystem.model.AnswerSheet">
+        <id property="id" column="as_id"/>
+        <result property="examId" column="as_exam_id"/>
+        <result property="examineeId" column="as_examinee_id"/>
+        <result property="score" column="as_score"/>
+        <result property="submissionTime" column="as_submission_time"/>
+        <collection property="answers" javaType="java.util.List" ofType="com.example.examsystem.model.Answer"
+                    select="com.example.examsystem.mapper.AnswerMapper.findByAnswerSheetId" column="as_id"/>
+    </resultMap>
+
+    <select id="findById" resultMap="AnswerSheetResultMap">
+        SELECT 
+            id as as_id, exam_id as as_exam_id, examinee_id as as_examinee_id, 
+            score as as_score, submission_time as as_submission_time
+        FROM answer_sheet
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByExamId" resultMap="AnswerSheetResultMap">
+        SELECT 
+            id as as_id, exam_id as as_exam_id, examinee_id as as_examinee_id, 
+            score as as_score, submission_time as as_submission_time
+        FROM answer_sheet
+        WHERE exam_id = #{examId}
+    </select>
+
+    <select id="findByExamineeId" resultMap="AnswerSheetResultMap">
+        SELECT 
+            id as as_id, exam_id as as_exam_id, examinee_id as as_examinee_id, 
+            score as as_score, submission_time as as_submission_time
+        FROM answer_sheet
+        WHERE examinee_id = #{examineeId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO answer_sheet (exam_id, examinee_id, score, submission_time)
+        VALUES (#{examId}, #{examineeId}, #{score}, #{submissionTime})
+    </insert>
+
+    <update id="update">
+        UPDATE answer_sheet SET
+            exam_id = #{examId},
+            examinee_id = #{examineeId},
+            score = #{score},
+            submission_time = #{submissionTime}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

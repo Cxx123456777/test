@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.examsystem.mapper.AnswerMapper">
+
+    <resultMap id="AnswerResultMap" type="com.example.examsystem.model.Answer">
+        <id property="id" column="id"/>
+        <result property="answerSheetId" column="answer_sheet_id"/>
+        <result property="questionId" column="question_id"/>
+        <result property="selectedOptionId" column="selected_option_id"/> <!-- For single choice -->
+        <result property="selectedOptionIds" column="selected_option_ids"/> <!-- For multiple choice, maybe comma-separated string or handled via type handler -->
+        <result property="answerText" column="answer_text"/> <!-- For fill-in-the-blank / true-false if options aren't used -->
+        <result property="isCorrect" column="is_correct"/> <!-- If graded individually -->
+        <result property="score" column="score"/> <!-- Score for this specific answer -->
+    </resultMap>
+
+    <select id="findById" resultMap="AnswerResultMap">
+        SELECT id, answer_sheet_id, question_id, selected_option_id, selected_option_ids, answer_text, is_correct, score
+        FROM answer
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByAnswerSheetId" resultMap="AnswerResultMap">
+        SELECT id, answer_sheet_id, question_id, selected_option_id, selected_option_ids, answer_text, is_correct, score
+        FROM answer
+        WHERE answer_sheet_id = #{answerSheetId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO answer (answer_sheet_id, question_id, selected_option_id, selected_option_ids, answer_text, is_correct, score)
+        VALUES (#{answerSheetId}, #{questionId}, #{selectedOptionId}, #{selectedOptionIds}, #{answerText}, #{isCorrect}, #{score})
+    </insert>
+
+    <insert id="insertBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO answer (answer_sheet_id, question_id, selected_option_id, selected_option_ids, answer_text, is_correct, score) VALUES
+        <foreach collection="list" item="ans" separator=",">
+            (#{ans.answerSheetId}, #{ans.questionId}, #{ans.selectedOptionId}, #{ans.selectedOptionIds}, #{ans.answerText}, #{ans.isCorrect}, #{ans.score})
+        </foreach>
+    </insert>
+
+    <update id="update">
+        UPDATE answer SET
+            answer_sheet_id = #{answerSheetId},
+            question_id = #{questionId},
+            selected_option_id = #{selectedOptionId},
+            selected_option_ids = #{selectedOptionIds},
+            answer_text = #{answerText},
+            is_correct = #{isCorrect},
+            score = #{score}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

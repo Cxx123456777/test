@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.examsystem.mapper.ExamMapper">
+
+    <resultMap id="ExamResultMap" type="com.example.examsystem.model.Exam">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="examPaperId" column="exampaper_id"/> <!-- Changed from examPaper.id -->
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <!-- examineeIds are not directly mapped here; typically handled by separate queries/logic if stored in a join table -->
+    </resultMap>
+
+    <!-- A statement to load examinee IDs if they are in a separate join table (example, not used by main ResultMap) -->
+    <select id="selectExamineeIdsForExam" resultType="java.lang.String">
+        SELECT examinee_id FROM exam_examinees WHERE exam_id = #{id}
+    </select>
+
+    <select id="findById" resultMap="ExamResultMap"> <!-- Changed to use full ExamResultMap -->
+        SELECT id, title, exampaper_id, start_time, end_time FROM exam WHERE id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="ExamResultMap"> <!-- Changed to use full ExamResultMap -->
+        SELECT id, title, exampaper_id, start_time, end_time FROM exam
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO exam (title, exampaper_id, start_time, end_time)
+        VALUES (#{title}, #{examPaperId}, #{startTime}, #{endTime}) <!-- Changed from examPaper.id -->
+    </insert>
+
+    <update id="update">
+        UPDATE exam SET
+            title = #{title},
+            exampaper_id = #{examPaperId}, <!-- Changed from examPaper.id -->
+            start_time = #{startTime},
+            end_time = #{endTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM exam WHERE id = #{id};
+        <!-- Also consider deleting from exam_examinees join table -->
+    </delete>
+
+</mapper>
